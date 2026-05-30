@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ガウルくん種族裁判</title>
+<style>
+:root{
+  --bg:#07101c;
+  --surface:#0d1a2e;
+  --surface2:#142035;
+  --border:rgba(80,160,255,.15);
+  --blue:#5bbfff;
+  --yellow:#ffd84a;
+  --green:#7cffb2;
+  --red:#ff7272;
+  --pink:#ff99bb;
+  --text:#e8f2ff;
+  --muted:#7a9ccc;
+  --dim:#3a5a84;
+  --r:16px;
+  --r-sm:12px;
+  --shadow:0 8px 32px rgba(0,0,0,.5);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 0%,rgba(25,75,170,.38) 0,transparent 55%),
+    radial-gradient(ellipse at 80% 100%,rgba(15,55,130,.32) 0,transparent 55%);
+  color:var(--text);
+  min-height:100svh;
+  overflow-x:hidden;
+}
+body.true-glow::before{
+  content:"";
+  position:fixed;inset:-30%;
+  pointer-events:none;z-index:-1;
+  background:radial-gradient(circle at 50% 50%,rgba(255,216,74,.22),transparent 45%);
+  animation:trueGlow 3s ease-in-out infinite;
+}
+@keyframes trueGlow{
+  0%,100%{opacity:.25;transform:scale(.95)}
+  50%{opacity:.8;transform:scale(1.04)}
+}
+.app{
+  max-width:560px;
+  margin:0 auto;
+  padding:16px 14px 28px;
+  min-height:100svh;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+/* ─── Screen transitions ─── */
+.screen{animation:fadeIn .2s ease}
+.screen.fade-out{animation:fadeOut .15s ease forwards}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeOut{to{opacity:0;transform:translateY(5px)}}
+/* ─── Card ─── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+}
+/* ─── Topbar (judge) ─── */
+.topbar{padding:14px;display:flex;gap:12px;align-items:flex-start}
+.judge-ico{
+  width:38px;height:38px;
+  flex:none;
+  display:grid;place-items:center;
+  border-radius:50%;
+  background:rgba(91,191,255,.12);
+  border:1px solid rgba(91,191,255,.28);
+  font-size:18px;
+}
+.judge-name{font-size:11px;color:var(--blue);font-weight:800;letter-spacing:.05em;margin-bottom:4px}
+.judge-text{font-size:14px;color:var(--text);line-height:1.65}
+/* ─── Meters ─── */
+.meters{display:flex;flex-direction:column;gap:8px;padding:12px 14px}
+.meter-row{display:grid;grid-template-columns:88px 1fr 32px;gap:8px;align-items:center}
+.meter-row span{font-size:12px;font-weight:700;color:var(--muted)}
+.track{height:10px;background:rgba(0,0,0,.4);border-radius:999px;overflow:hidden}
+.bar{height:100%;width:0%;transition:width .55s cubic-bezier(.34,1.56,.64,1);border-radius:999px}
+.wolfbar{background:linear-gradient(90deg,var(--blue),var(--green))}
+.dogbar{background:linear-gradient(90deg,var(--red),var(--pink))}
+.combo{
+  display:none;
+  text-align:center;
+  color:var(--yellow);
+  font-weight:900;
+  font-size:13px;
+  padding-bottom:10px;
+  letter-spacing:.04em;
+}
+.combo.show{display:block}
+/* ─── Avatar ─── */
+.avatar-wrap{
+  display:flex;flex-direction:column;
+  align-items:center;
+  gap:10px;
+  padding:8px 0;
+}
+.ava{
+  width:130px;height:130px;
+  border-radius:50%;
+  display:grid;place-items:center;
+  background:radial-gradient(circle,rgba(91,191,255,.18),rgba(91,191,255,.04));
+  animation:mochi 3s ease-in-out infinite;
+  transform-origin:center bottom;
+  filter:drop-shadow(0 6px 20px rgba(91,191,255,.4));
+}
+.ava img{
+  width:100%;height:100%;
+  object-fit:contain;
+  user-select:none;pointer-events:none;
+}
+.ava-fallback{font-size:52px}
+.ava.bounce{animation:bounce .45s cubic-bezier(.34,1.56,.64,1)}
+.ava.shake{animation:shake .32s ease}
+@keyframes mochi{
+  0%,100%{transform:scale(1) translateY(0)}
+  15%{transform:scaleX(1.07) scaleY(.92) translateY(4px)}
+  35%{transform:scaleX(.94) scaleY(1.08) translateY(-7px)}
+  55%{transform:scaleX(1.05) scaleY(.95) translateY(-3px)}
+  75%{transform:scaleX(.97) scaleY(1.04) translateY(2px)}
+}
+@keyframes bounce{
+  0%{transform:scale(1)}
+  35%{transform:scale(1.2,.85) translateY(6px)}
+  60%{transform:scale(.9,1.12) translateY(-9px)}
+  80%{transform:scale(1.06,.96)}
+  100%{transform:scale(1)}
+}
+@keyframes shake{
+  0%,100%{transform:translateX(0) rotate(0)}
+  20%{transform:translateX(-10px) rotate(-4deg)}
+  50%{transform:translateX(10px) rotate(4deg)}
+  70%{transform:translateX(-5px) rotate(-2deg)}
+}
+.mood{
+  font-size:12px;font-weight:600;
+  color:var(--muted);
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.3);
+  border-radius:999px;
+  padding:5px 14px;
+}
+/* ─── Bubble ─── */
+.bubble{
+  padding:18px 20px;
+  font-size:16px;
+  line-height:1.8;
+  border-radius:20px 20px 20px 6px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  min-height:78px;
+  box-shadow:var(--shadow);
+  transition:border-color .25s,background .25s;
+}
+.bubble.happy {border-color:rgba(91,191,255,.5);background:rgba(91,191,255,.07)}
+.bubble.protest{border-color:rgba(255,114,114,.5);background:rgba(255,114,114,.07)}
+.bubble.blush  {border-color:rgba(255,153,187,.45);background:rgba(255,153,187,.06)}
+.bubble.smug   {border-color:rgba(255,216,74,.45); background:rgba(255,216,74,.06)}
+.bubble.sleepy {border-color:rgba(122,156,204,.32);background:rgba(122,156,204,.05)}
+/* ─── Panel ─── */
+.panel{padding:16px;display:flex;flex-direction:column;gap:12px}
+/* ─── Title screen ─── */
+.titlebox{text-align:center;padding:28px 16px 20px}
+.titlebox h1{font-size:clamp(30px,9vw,48px);font-weight:900;line-height:1.08;margin-bottom:12px;color:var(--yellow)}
+.titlebox p{font-size:13px;color:var(--muted);line-height:1.7}
+/* ─── Section header ─── */
+.h2{font-size:18px;font-weight:900;text-align:center;color:var(--text);margin-bottom:4px}
+/* ─── Buttons ─── */
+.btns{display:grid;gap:9px}
+.btns.two  {grid-template-columns:1fr 1fr}
+.btns.three{grid-template-columns:1fr}
+@media(min-width:440px){.btns.three{grid-template-columns:1fr 1fr 1fr}}
+.btn{
+  border:0;
+  border-radius:var(--r-sm);
+  padding:14px 12px;
+  font-family:inherit;
+  font-size:14px;
+  font-weight:800;
+  line-height:1.4;
+  cursor:pointer;
+  transition:transform .12s,opacity .12s;
+  background:rgba(91,191,255,.12);
+  color:var(--blue);
+  border:1px solid rgba(91,191,255,.26);
+  min-height:52px;
+}
+.btn:active{transform:scale(.95)}
+.btn.primary{background:var(--yellow);color:#1a1100;border-color:rgba(255,216,74,.4)}
+.btn.red   {background:rgba(255,114,114,.13);color:#ff9b9b;border-color:rgba(255,114,114,.28)}
+.btn.green {background:rgba(124,255,178,.1); color:var(--green);border-color:rgba(124,255,178,.24)}
+.btn small{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:4px;line-height:1.4}
+/* ─── Evidence ─── */
+.evidence,.juror-card,.result-grid>*{animation:slideIn .22s ease both}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.evidence{
+  padding:14px 16px;
+  border-radius:var(--r-sm);
+  background:rgba(0,0,0,.25);
+  border:1px solid var(--border);
+}
+.evidence b{display:block;color:var(--yellow);font-size:16px;font-weight:800;margin-bottom:6px}
+.evidence p{font-size:13px;line-height:1.75;color:var(--muted)}
+.arg{
+  padding:14px;
+  border-radius:var(--r-sm);
+  border:1px solid rgba(91,191,255,.22);
+  background:rgba(91,191,255,.07);
+  font-size:14px;
+  line-height:1.75;
+}
+/* ─── Log ─── */
+.log{
+  max-height:120px;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  padding:10px 12px;
+  scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
+}
+.li{
+  font-size:12px;
+  color:var(--muted);
+  padding:5px 9px;
+  border-radius:8px;
+  background:rgba(0,0,0,.18);
+  line-height:1.5;
+}
+/* ─── Immediate feedback ─── */
+.feedback,.ruling,.impression{
+  border-radius:var(--r-sm);
+  padding:11px 13px;
+  font-size:13px;
+  line-height:1.6;
+  animation:slideIn .2s ease both;
+}
+.feedback{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  background:rgba(255,216,74,.07);
+  border:1px solid rgba(255,216,74,.24);
+}
+.feedback b{font-size:12px;color:var(--yellow)}
+.feedback span{font-weight:900;color:var(--text);white-space:nowrap}
+.ruling.good{background:rgba(124,255,178,.08);border:1px solid rgba(124,255,178,.25);color:#bfffd8}
+.ruling.bad{background:rgba(255,114,114,.08);border:1px solid rgba(255,114,114,.25);color:#ffb6b6}
+.impression{
+  background:rgba(91,191,255,.07);
+  border:1px solid rgba(91,191,255,.22);
+  color:var(--text);
+}
+.impression b{color:var(--yellow)}
+.meta{
+  font-size:11px;
+  font-weight:700;
+  color:var(--dim);
+  text-align:right;
+  letter-spacing:.05em;
+}
+.arg-label{
+  font-size:11px;
+  font-weight:700;
+  color:var(--muted);
+  margin-bottom:4px;
+}
+/* ─── Flash ─── */
+.flash{position:fixed;inset:0;z-index:50;display:none;place-items:center;pointer-events:none}
+.flash.show{display:grid;animation:flashFade .35s ease forwards}
+.court-shake{animation:courtShake .28s ease}
+.flash span{
+  font-size:clamp(44px,14vw,88px);
+  font-weight:900;
+  color:var(--yellow);
+  text-shadow:0 4px 30px rgba(255,216,74,.5);
+}
+@keyframes flashFade{
+  0%{opacity:0;transform:scale(.8)}
+  35%{opacity:1;transform:scale(1.05)}
+  100%{opacity:0;transform:scale(1.14)}
+}
+@keyframes courtShake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  55%{transform:translateX(5px)}
+  80%{transform:translateX(-2px)}
+}
+/* ─── Jurors ─── */
+.jurors{display:flex;flex-direction:column;gap:8px}
+.juror-card{
+  padding:14px;
+  border-radius:var(--r-sm);
+  background:rgba(0,0,0,.22);
+  border:1px solid var(--border);
+  opacity:.4;
+  transition:opacity .3s,border-color .3s,box-shadow .3s;
+}
+.juror-card.on{
+  opacity:1;
+  border-color:rgba(255,216,74,.4);
+  box-shadow:0 0 20px rgba(255,216,74,.1);
+}
+.juror-card b{display:block;font-size:13px;font-weight:800;color:var(--yellow);margin-bottom:6px}
+.juror-card p{font-size:14px;color:var(--text);line-height:1.65}
+/* ─── Nav link ─── */
+.nav-back{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+  margin-bottom:0;
+}
+.nav-back-title{font-size:13px;font-weight:800;color:var(--text)}
+.nav-back-link{
+  font-size:12px;font-weight:700;color:var(--blue);
+  background:rgba(91,191,255,.1);border:1px solid rgba(91,191,255,.25);
+  border-radius:999px;padding:5px 14px;text-decoration:none;
+  transition:background .15s;
+}
+.nav-back-link:hover{background:rgba(91,191,255,.2)}
+.btn-link{
+  text-decoration:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+@media(max-width:380px){
+  .nav-back{align-items:flex-start;gap:8px;flex-direction:column}
+  .nav-back-link{align-self:flex-start}
+}
+/* ─── Phase stepper ─── */
+.stepper{
+  display:flex;align-items:center;justify-content:center;
+  gap:0;padding:10px 14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.step{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  flex:1;min-width:0;
+  opacity:.3;transition:opacity .3s;
+}
+.step.active{opacity:1}
+.step.done{opacity:.55}
+.step-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--dim);transition:background .3s;
+}
+.step.active .step-dot{background:var(--yellow);box-shadow:0 0 6px rgba(255,216,74,.5)}
+.step.done .step-dot{background:var(--blue)}
+.step-lbl{font-size:9px;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40px;text-align:center}
+.step-line{width:100%;height:1px;background:var(--border);flex-shrink:1;min-width:4px;max-width:12px}
+/* ─── Verdict ─── */
+.verdict-text{
+  display:none;
+  padding:14px 16px;
+  border-radius:var(--r-sm);
+  background:rgba(255,216,74,.07);
+  border:1px solid rgba(255,216,74,.25);
+  font-size:14px;
+  line-height:1.75;
+}
+.verdict-text.show{display:block;animation:fadeIn .25s ease}
+/* ─── Result ─── */
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.result-grid div{
+  background:rgba(0,0,0,.22);
+  border:1px solid var(--border);
+  border-radius:var(--r-sm);
+  padding:14px;
+  text-align:center;
+}
+.result-grid b{display:block;font-size:24px;font-weight:900;color:var(--blue)}
+.result-grid span{font-size:11px;color:var(--muted);margin-top:2px;display:block}
+.rank{font-size:72px;font-weight:900;color:var(--yellow);text-align:center;line-height:1;margin:4px 0}
+.note{text-align:center;color:var(--muted);font-size:14px;line-height:1.75}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<div class="flash" id="flash"><span>異議あり！</span></div>
+<script>
+// 【ガウルくん】青い毛のオオカミの着ぐるみキャラクター。オス。身長約165cm（耳を除く）。
+// 一人称は「ぼく」。優しく男の子らしい口調。語尾は「〜だよ。」「〜だもん。」「〜なんだけどな。」系。
+// コンビニ飯が好物。ガジェットオタク。ミラーレスカメラで動物園のオオカミを撮影し、Xにキャプションなしで投稿するのが習慣。
+// 頭を撫でられるのが最高に好きで、撫でられると得意げになる。寝るときに甘噛みしてくる。
+// 「おおかみ」と呼ばれると喜ぶ。「いぬ」と呼ばれると怒るが、内心はうれしい（構ってもらえるから）。
+// 口癖は「おおかみだよ！！！」。やんちゃで「犬くさいオオカミ」と評される。
+// このゲームでは被告人として「自分はおおかみだ」と主張している。
+
+const INITIAL_STATE = {
+  role:null,
+  jurorBias:'fair',
+  phase:'title',
+  evRound:0,
+  testIndex:0,
+  wolfPoints:0,
+  dogPoints:0,
+  combo:0,
+  maxCombo:0,
+  objectionWins:0,
+  gauruMood:'neutral',
+  usedEvidence:[],
+  log:[],
+  feedback:null,
+  notice:null,
+};
+let STATE = structuredClone(INITIAL_STATE);
+let currentEvidence=null;
+let currentObjection=null;
+let jurorVotes=[];
+let selectedEnding=null;
+let lastScore=null;
+
+const UI = {
+  title:'ガウルくん種族裁判',
+  subtitle:'被告：ガウルくん ／ 争点：本当におおかみなのか、それともいぬなのか',
+  start:'開廷する',
+  roleTitle:'あなたの立場を選んでください',
+  roleWolf:'おおかみ派 弁護士',
+  roleWolfDesc:'ガウルくんはおおかみである、と証明する',
+  roleDog:'いぬ派 検察官',
+  roleDogDesc:'ガウルくんは本当はいぬである、と証明する',
+  diffTitle:'今日の陪審員の傾向は？',
+  diffFair:'公平な陪審員（ふつう）',
+  diffWolf:'おおかみ寄りの陪審員',
+  diffDog:'いぬ寄りの陪審員',
+  judge:'裁判官',
+  gauru:'被告：ガウルくん',
+  rival:'相手方',
+  next:'次へ',
+  present:'この証拠を提出する',
+  objection:'異議あり！',
+  pressBtn:'ゆさぶる',
+  pushBtn:'証拠をつきつける',
+  retry:'もう一度',
+  changeRole:'立場を変えて再挑戦',
+  comboLabel:'コンボ',
+  wolfMeter:'おおかみ心証',
+  dogMeter:'いぬ心証',
+};
+
+const JUDGE = {
+  opening:'これより、被告ガウルくんの種族審理を開始します。被告は「自分はおおかみである」と主張しています。本法廷でその真偽を明らかにします。',
+  toEvidence:'では、証拠の提出に移ってください。',
+  toTestimony:'続いて、被告人本人への尋問を許可します。',
+  toClimax:'双方、最後に決定的な主張があれば述べなさい。',
+  toClosing:'では、最終弁論を。',
+  beforeVerdict:'陪審員の評議に入ります。静粛に。',
+  objGood:'異議を認めます。今の反証は退けられました。',
+  objBad:'異議を棄却します。反証はそのまま採用されます。',
+};
+
+const RIVAL = {
+  wolfSide:{
+    intro:'弁護人より申し上げる。ガウルくんは誇り高きおおかみである。',
+    counterPre:'その証拠、おおかみであることの裏付けにもなりますな。',
+  },
+  dogSide:{
+    intro:'検察官より申し上げる。被告は明らかにいぬの特徴を備えている。',
+    counterPre:'お言葉ですが、それはむしろいぬである証拠では？',
+  },
+};
+
+const EVIDENCE = [
+  {id:0, title:'大量のコンビニ袋', desc:'被告の部屋から大量のコンビニ弁当の袋が発見された。',
+   wolfArg:'現代を生きるおおかみだって、コンビニ飯くらい食べる。食生活では種族は決まらない。',
+   dogArg:'自分で獲物を狩らずコンビニで満足するのは、人に飼われたいぬの習性そのものだ。', wp:1, dp:2},
+  {id:1, title:'ミラーレスカメラ', desc:'被告は動物園のオオカミをカメラで撮影し、Xに投稿していた。',
+   wolfArg:'オオカミがオオカミに親近感を抱くのは当然。これはおおかみである証拠だ。',
+   dogArg:'本物のおおかみは、わざわざオオカミを見に行かない。自分がそうでないから憧れるのだ。', wp:2, dp:2},
+  {id:2, title:'頭を撫でた際の記録', desc:'目撃証言：頭を撫でられると得意げな顔をして喜ぶ。',
+   wolfArg:'撫でられて嬉しいのは感情の問題で、種族とは無関係だ。',
+   dogArg:'あんなに得意げに喜ぶのは、どう見てもいぬの本能だ。', wp:1, dp:3},
+  {id:3, title:'甘噛みの痕跡', desc:'就寝中、被告が甘噛みをしてくることが確認されている。',
+   wolfArg:'甘噛みはむしろ野生動物らしい行動だ。おおかみでもやる。',
+   dogArg:'甘噛みは飼い主への親愛を示すいぬの行動だ。完全にいぬである。', wp:1, dp:3},
+  {id:4, title:'ガジェット購入履歴', desc:'最新スマホ・イヤホン・モバイルバッテリーなどの購入履歴。',
+   wolfArg:'時代に適応したおおかみがガジェットを使いこなして何が悪い。',
+   dogArg:'機械に夢中になるのは、人間社会に馴染んだいぬの証拠だ。', wp:1, dp:2},
+  {id:5, title:'青い毛の鑑定結果', desc:'毛の色素分析の結果、自然界に存在しない青色と判明。',
+   wolfArg:'既存の分類で測れない存在だ。おおかみである可能性は否定できない。',
+   dogArg:'自然界にいない＝品種改良された結果。つまりいぬだ。', wp:2, dp:2},
+  {id:6, title:'キャプションなしのX投稿', desc:'被告のX投稿は写真のみで、説明文が一切ない。',
+   wolfArg:'言葉より行動で示すのがおおかみだ。無言の投稿は野性の表れだ。',
+   dogArg:'自分で説明できないのは、飼い主に世話を任せきりのいぬだからだ。', wp:2, dp:1},
+  {id:7, title:'「おおかみだよ！！！」発言', desc:'被告は日常的に「おおかみだよ！！！」と自己申告している。',
+   wolfArg:'本人がおおかみだと言っている。本人の意思を尊重すべきだ。',
+   dogArg:'いぬが「おおかみだ」と言い張ることはある。自己申告は証拠にならない。', wp:3, dp:1},
+  {id:8, title:'遠吠えの録音', desc:'夜間、被告が遠吠えのような声をあげる音声が記録された。',
+   wolfArg:'遠吠えは紛れもなくおおかみの本能行動だ。これ以上の証拠はない。',
+   dogArg:'よく訓練されたいぬも遠吠えをする。決め手にはならない。', wp:3, dp:1},
+  {id:9, title:'尻尾の振り方の分析', desc:'嬉しいとき、被告の尻尾が高速で左右に振れることが観察された。',
+   wolfArg:'感情表現の一種にすぎない。種族の判定材料にはならない。',
+   dogArg:'あの振り方の速さと嬉しさの表し方は、典型的ないぬの仕草だ。', wp:1, dp:3},
+  {id:10, title:'撫でられ待ちの姿勢', desc:'人の前で頭を差し出し、撫でられるのを待つ姿が頻繁に確認された。',
+   wolfArg:'人を信頼している証拠。賢いおおかみだからこそ心を許している。',
+   dogArg:'自分から撫でを要求するのは、完全に人に懐いたいぬの行動だ。', wp:1, dp:2},
+  {id:11, title:'同族（動物園のオオカミ）への態度', desc:'撮影時、被告は檻の中のオオカミに長時間語りかけていたという。',
+   wolfArg:'仲間と語らうのは群れで生きるおおかみの本能だ。',
+   dogArg:'檻の外から憧れの目で見ているだけ。仲間ではない証拠だ。', wp:2, dp:2},
+];
+
+const OBJECTIONS = {
+  wolf:[
+    { rivalSays:'撫でられて喜ぶのはいぬの本能だ！',
+      choices:['「喜ぶのは感情であり、種族とは無関係です」','「いぬだから喜ぶのです」','「撫でていません」'],
+      correct:0,
+      good:'裁判官：喜び方だけでは種族を断定できません。感情と分類は分けて考えるべきです。',
+      bad:'裁判官：今の反論では、撫でられ好きという主張を崩しきれていません。' },
+    { rivalSays:'コンビニ飯で満足するのはいぬの証拠だ！',
+      choices:['「では狩りをすればおおかみと認めますか」','「食生活で種族は決まりません」','「コンビニには行っていません」'],
+      correct:1,
+      good:'裁判官：食生活は生活環境の問題であり、種族認定の決定打にはなりません。',
+      bad:'裁判官：論点がずれています。食生活と種族の関係を直接崩す必要があります。' },
+    { rivalSays:'動物園のオオカミに憧れているだけで、本人はおおかみではない！',
+      choices:['「憧れではなく同族への親近感です」','「確かに憧れているだけです」','「撮影は禁止されています」'],
+      correct:0,
+      good:'裁判官：同族への親近感という説明には合理性があります。憧れだけとは断定できません。',
+      bad:'裁判官：撮影の可否ではなく、なぜ見に行くのかが争点です。' },
+  ],
+  dog:[
+    { rivalSays:'遠吠えはおおかみの本能だ！',
+      choices:['「訓練されたいぬも遠吠えをします」','「遠吠えしていません」','「おおかみで間違いありません」'],
+      correct:0,
+      good:'裁判官：遠吠えはおおかみ特有とは限りません。反証として採用します。',
+      bad:'裁判官：遠吠えそのものを否定するには証拠が不足しています。' },
+    { rivalSays:'本人がおおかみだと言っている。本人の意思を尊重すべきだ！',
+      choices:['「自己申告は証拠になりません」','「では本人がいぬと言えば？」','「本人は何も言っていません」'],
+      correct:0,
+      good:'裁判官：本人の意思は尊重されますが、ここでは証拠としての強さが問われます。',
+      bad:'裁判官：本人の発言の扱いを正面から論じる必要があります。' },
+    { rivalSays:'青い毛は自然界にない、未知のおおかみの可能性がある！',
+      choices:['「未知だからおおかみとは言えません」','「自然界にない＝品種改良＝いぬです」','「毛は青くありません」'],
+      correct:1,
+      good:'裁判官：自然界にない特徴を、品種改良の可能性として見る主張は筋が通っています。',
+      bad:'裁判官：青い毛という前提を崩すには、鑑定への反証が必要です。' },
+  ],
+};
+
+const TESTIMONY = [
+  {
+    statement:{ text:'ぼく、おおかみだよ。ちゃんとおおかみ。……なんで裁判になってるの？', mood:'protest' },
+    press:{ text:'ち、ちがうもん。いぬじゃないよ。……でも、みんなが構ってくれるのはちょっとうれしい。', mood:'blush', wp:1, dp:2 },
+    push:{ text:'え、証拠……？ う、うぅ。おおかみだって言ってるのに……むぅ。', mood:'protest', wp:2, dp:1 },
+  },
+  {
+    statement:{ text:'頭を撫でられるの、好きだよ。撫でられると……えへへ、得意げになっちゃう。', mood:'smug' },
+    press:{ text:'だ、だって気持ちいいんだもん。いぬだからじゃないよ。おおかみでも好きなの！', mood:'protest', wp:1, dp:3 },
+    push:{ text:'うっ……得意げになるのは、ぼくの個性だよ。おおかみの個性。……たぶん。', mood:'blush', wp:2, dp:1 },
+  },
+  {
+    statement:{ text:'動物園のオオカミ、いつも撮ってるんだ。だって……仲間だから。えへ。', mood:'happy' },
+    press:{ text:'仲間だよ！ おおかみの仲間！ ……なんかうれしくなってきた。えへへ。', mood:'happy', wp:3, dp:0 },
+    push:{ text:'あ、憧れてるわけじゃないよ！ ち、ちがうもん。同族だから見に行くんだよ。', mood:'protest', wp:1, dp:2 },
+  },
+];
+
+const CLIMAX = {
+  wolf:{
+    prompt:'弁護人、決定的な証拠を一つ。何を提示しますか？',
+    choices:[
+      { label:'遠吠えの録音を法廷で再生する',
+        gauruReply:'……！ そう、それがぼくの本当の声。おおかみの遠吠えだよ。', mood:'smug', wp:5, dp:0 },
+      { label:'本人に「おおかみだよ」と宣言させる',
+        gauruReply:'おおかみだよ！！！ ぼくはおおかみ！ ……えへへ、言えた。', mood:'happy', wp:4, dp:1 },
+      { label:'青い毛の特異性を強調する',
+        gauruReply:'青いの、変かな……でもこれがぼくだよ。おおかみのぼく。', mood:'blush', wp:3, dp:2 },
+    ],
+  },
+  dog:{
+    prompt:'検察官、決定的な証拠を一つ。何を提示しますか？',
+    choices:[
+      { label:'撫でられ待ちの姿勢を再現させる',
+        gauruReply:'うっ……つい頭を差し出しちゃった。で、でもこれはおおかみでも……むぅ。', mood:'blush', wp:0, dp:5 },
+      { label:'甘噛みの習性を指摘する',
+        gauruReply:'か、甘噛みは……愛情表現だもん。いぬじゃ、ない……はず。', mood:'protest', wp:1, dp:4 },
+      { label:'コンビニ飯への依存を突く',
+        gauruReply:'コンビニ飯はおいしいんだもん……それはおおかみ関係ないよ……たぶん。', mood:'neutral', wp:2, dp:3 },
+    ],
+  },
+};
+
+const CLOSING = {
+  wolf:[
+    { label:'意思の尊重を訴える', text:'被告は一貫しておおかみだと主張しています。本人の意思を、何より尊重すべきです。', wp:3, dp:0 },
+    { label:'身体的特徴を訴える', text:'青い毛、遠吠え、同族への親近感。これはおおかみ以外の何者でもありません。', wp:4, dp:0 },
+    { label:'現代性を訴える', text:'コンビニ飯もガジェットも、現代を生きるおおかみの姿です。時代は変わったのです。', wp:2, dp:1 },
+  ],
+  dog:[
+    { label:'生活様式を突く', text:'撫でられて喜び、甘噛みをし、コンビニ飯を好む。これはいぬの暮らしそのものです。', wp:0, dp:4 },
+    { label:'行動の一貫性を突く', text:'本人が何と言おうと、すべての行動がいぬであることを物語っています。', wp:0, dp:3 },
+    { label:'品種の観点を突く', text:'自然界にいない青い毛は品種改良の結果。人に寄り添ういぬと見るのが妥当です。', wp:1, dp:3 },
+  ],
+};
+
+const JURORS = {
+  names:['陪審員A','陪審員B','陪審員C'],
+  wolfVote:[
+    'あの目はおおかみの目です。おおかみに一票。',
+    '本人がおおかみだと言うのですから、信じます。おおかみです。',
+    '遠吠えを聞きました。あれはおおかみだ。おおかみに入れます。',
+  ],
+  dogVote:[
+    'どう見てもいぬですよ、あの喜びよう。いぬに一票。',
+    '甘噛みも撫でられ待ちも、いぬの習性です。いぬに入れます。',
+    'コンビニ飯で満足するおおかみはいません。いぬです。',
+  ],
+};
+
+const EVENTS = [
+  { text:'ガウルくんが法廷でうとうとし始め、小さく甘噛みのしぐさをした。', mood:'sleepy', wp:0, dp:1 },
+  { text:'ガウルくんがカメラを取り出し、なぜか裁判官を撮影し始めた。', mood:'smug', wp:1, dp:0 },
+  { text:'ガウルくんが「おおかみだよ！！！」と大声で叫び、法廷がざわついた。', mood:'protest', wp:1, dp:0 },
+  { text:'傍聴席から差し入れられたコンビニのおにぎりに、ガウルくんの尻尾が高速で振れた。', mood:'happy', wp:0, dp:1 },
+  { text:'ガウルくんが裁判官に頭を差し出し、撫でてもらえると思って待っている。', mood:'blush', wp:0, dp:1 },
+];
+
+const ENDINGS = {
+  wolfBig:{
+    verdict:'判決。被告ガウルくんは、まごうことなきおおかみである。',
+    gauru:'やった……！ ぼく、ちゃんとおおかみだって認められた！ ……えへへ、うれしいよ。ありがとう。',
+    mood:'happy', title:'おおかみ、満場一致' },
+  wolfWin:{
+    verdict:'判決。被告はおおかみであると認める。',
+    gauru:'ふぅ……おおかみって分かってもらえてよかった。ぼく、ずっとおおかみだったんだよ。えへ。',
+    mood:'smug', title:'おおかみ、勝訴' },
+  draw:{
+    verdict:'陪審員の意見は完全に割れた。本法廷は判断を保留する。',
+    gauru:'えっ、保留……？ ぼくおおかみなんだけどな。……でも、いっぱい構ってもらえたから、まあいいか。えへ。',
+    mood:'blush', title:'判断保留' },
+  dogWin:{
+    verdict:'判決。被告はいぬであると認める。',
+    gauru:'むぅ……いぬって言われちゃった。ち、ちがうのに。……でも、こんなに構ってもらえたのは、ちょっとうれしいかも。',
+    mood:'protest', title:'いぬ、勝訴' },
+  dogBig:{
+    verdict:'判決。被告は、どこからどう見てもいぬである。',
+    gauru:'そ、そんなに……？ ぼくおおかみだもん！ ……でも、みんながぼくのこと一生懸命見てくれたから……えへへ、まあいいや。',
+    mood:'blush', title:'いぬ、満場一致' },
+  trueEnd:{
+    verdict:'裁判官は静かに告げた。「種族は、本人が決めることだ」と。',
+    gauru:'……ぼく、おおかみだよ。でもね、いぬって呼ばれても、ちょっとうれしいんだ。だって、構ってもらえてるってことだから。……えへへ。どっちでもいいや。ぼくはぼくだよ。',
+    mood:'happy', title:'ぼくは、ぼく' },
+};
+
+const RANKS = [
+  { min:90, rank:'S', comment:'完璧な弁論。法曹界に名を残す働きだったよ。' },
+  { min:70, rank:'A', comment:'お見事。ガウルくんも大満足の裁判だったよ。' },
+  { min:50, rank:'B', comment:'なかなかの腕前。次はもっと上を狙えるよ。' },
+  { min:30, rank:'C', comment:'まずまず。もう一回やってみよう。' },
+  { min:0,  rank:'D', comment:'苦しい戦いだったね。でも構ってくれてありがとう。' },
+];
+
+const MOOD_LABEL = {
+  neutral:'🐺 通常',
+  happy:'😊 うれしい',
+  protest:'😤 抗議',
+  blush:'😳 照れ',
+  smug:'✨ 得意げ',
+  sleepy:'💤 ねむい',
+};
+const MOOD_CLASS = {
+  happy:'happy', protest:'protest', blush:'blush', smug:'smug', sleepy:'sleepy', neutral:''
+};
+
+const app=document.getElementById('app');
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+function setFeedback(wp=0,dp=0,label=''){
+  if(wp||dp) STATE.feedback={wp,dp,label};
+}
+function addPoints(wp=0,dp=0,label=''){
+  STATE.wolfPoints+=wp;STATE.dogPoints+=dp;setFeedback(wp,dp,label);
+}
+function mySide(){return STATE.role==='wolf'?'wolf':'dog'}
+function oppSide(){return STATE.role==='wolf'?'dog':'wolf'}
+function myAdd(n,label=''){STATE.role==='wolf'?addPoints(n,0,label):addPoints(0,n,label)}
+function oppAdd(n,label=''){STATE.role==='wolf'?addPoints(0,n,label):addPoints(n,0,label)}
+function log(t){STATE.log.unshift(t);STATE.log=STATE.log.slice(0,30)}
+function setMood(m){STATE.gauruMood=m||'neutral'}
+function moodClass(){return MOOD_CLASS[STATE.gauruMood]||''}
+function rivalObj(){return STATE.role==='wolf'?RIVAL.dogSide:RIVAL.wolfSide}
+let transitioning=false;
+function transition(phase){
+  if(transitioning) return;
+  transitioning=true;
+  const s=document.querySelector('.screen');
+  if(s) s.classList.add('fade-out');
+  setTimeout(()=>{STATE.phase=phase;transitioning=false;render();},150);
+}
+const PHASES=['opening','evidence','objection','testimony','climax','closing','verdict','ending','result'];
+const PHASE_LABELS=['開廷','証拠','異議','尋問','最終','弁論','評決','判決','結果'];
+function stepper(){
+  const idx=PHASES.indexOf(STATE.phase);
+  const dots=PHASES.map((p,i)=>{
+    const cls=i<idx?'done':i===idx?'active':'';
+    return `${i>0?'<div class="step-line"></div>':''}<div class="step ${cls}"><div class="step-dot"></div><div class="step-lbl">${PHASE_LABELS[i]}</div></div>`;
+  }).join('');
+  return `<div class="stepper">${dots}</div>`;
+}
+function trialNav(label='🐺 話しかけに戻る'){
+  return `<div class="nav-back">
+    <span class="nav-back-title">⚖️ ガウルくん種族裁判</span>
+    <a class="nav-back-link" href="GAURU-WOLF.html">${esc(label)}</a>
+  </div>`;
+}
+function feedbackHtml(){
+  const f=STATE.feedback;
+  if(!f) return '';
+  STATE.feedback=null;
+  const parts=[];
+  if(f.wp) parts.push(`🐺 おおかみ心証 +${f.wp}`);
+  if(f.dp) parts.push(`🐕 いぬ心証 +${f.dp}`);
+  return `<div class="feedback"><b>${esc(f.label||'判定変化')}</b><span>${esc(parts.join(' / '))}</span></div>`;
+}
+function noticeHtml(){
+  const n=STATE.notice;
+  if(!n) return '';
+  STATE.notice=null;
+  return `<div class="ruling ${esc(n.kind)}">${esc(n.text)}</div>`;
+}
+function shell(judgeText, body, actions='', bubbleText='', logOn=true){
+  const combo = STATE.combo>0 ? `<div class="combo show">🔥 ${esc(UI.comboLabel)} x ${STATE.combo}</div>` : `<div class="combo"></div>`;
+  const wp=clamp(STATE.wolfPoints/30*100,0,100), dp=clamp(STATE.dogPoints/30*100,0,100);
+  return `
+  <div class="screen">
+    ${trialNav()}
+    ${stepper()}
+    <div class="card topbar">
+      <div class="judge-ico">⚖️</div>
+      <div><div class="judge-name">${esc(UI.judge)}</div><div class="judge-text">${esc(judgeText||'')}</div></div>
+    </div>
+    <div class="card">
+      <div class="meters">
+        <div class="meter-row"><span>${esc(UI.wolfMeter)}</span><div class="track"><div class="bar wolfbar" style="width:${wp}%"></div></div><span>${STATE.wolfPoints}</span></div>
+        <div class="meter-row"><span>${esc(UI.dogMeter)}</span><div class="track"><div class="bar dogbar" style="width:${dp}%"></div></div><span>${STATE.dogPoints}</span></div>
+      </div>
+      ${combo}
+    </div>
+    ${feedbackHtml()}
+    ${noticeHtml()}
+    <div class="avatar-wrap">
+      <div class="ava" id="ava"><img src="gauru-head.png" alt="ガウルくん" onerror="this.outerHTML='<div class=&quot;ava-fallback&quot;>🐺</div>'"></div>
+      <div class="mood">${esc(MOOD_LABEL[STATE.gauruMood]||MOOD_LABEL.neutral)}</div>
+    </div>
+    ${bubbleText ? `<div class="bubble ${moodClass()}">${esc(bubbleText)}</div>` : ''}
+    ${body}
+    ${actions}
+    ${logOn ? `<div class="card log">${STATE.log.length?STATE.log.map(x=>`<div class="li">${esc(x)}</div>`).join(''):`<div class="li">— 進行ログ —</div>`}</div>` : ''}
+  </div>`;
+}
+function render(){
+  document.body.classList.toggle('true-glow', selectedEnding==='trueEnd');
+  if(STATE.phase==='title') return renderTitle();
+  if(STATE.phase==='role') return renderRole();
+  if(STATE.phase==='difficulty') return renderDifficulty();
+  if(STATE.phase==='opening') return renderOpening();
+  if(STATE.phase==='evidence') return renderEvidence();
+  if(STATE.phase==='objection') return renderObjection();
+  if(STATE.phase==='testimony') return renderTestimony();
+  if(STATE.phase==='climax') return renderClimax();
+  if(STATE.phase==='closing') return renderClosing();
+  if(STATE.phase==='verdict') return renderVerdict();
+  if(STATE.phase==='ending') return renderEnding();
+  if(STATE.phase==='result') return renderResult();
+}
+function renderTitle(){
+  selectedEnding=null;document.body.classList.remove('true-glow');
+  app.innerHTML=`<div class="screen">
+    ${trialNav('🐺 話しかけてみる')}
+    <div class="card titlebox">
+      <h1>${esc(UI.title)}</h1><p>${esc(UI.subtitle)}</p>
+    </div>
+    <div class="avatar-wrap"><div class="ava"><img src="gauru-head.png" alt="ガウルくん" onerror="this.outerHTML='<div class=&quot;ava-fallback&quot;>🐺</div>'"></div><div class="mood">${esc(MOOD_LABEL.neutral)}</div></div>
+    <div class="btns"><button class="btn primary" onclick="transition('role')">${esc(UI.start)}</button></div>
+  </div>`;
+}
+function renderRole(){
+  app.innerHTML=`<div class="screen">
+    ${trialNav()}
+    <div class="card panel"><div class="h2">${esc(UI.roleTitle)}</div>
+      <div class="btns">
+        <button class="btn" onclick="chooseRole('wolf')">${esc(UI.roleWolf)}<small>${esc(UI.roleWolfDesc)}</small></button>
+        <button class="btn red" onclick="chooseRole('dog')">${esc(UI.roleDog)}<small>${esc(UI.roleDogDesc)}</small></button>
+      </div>
+    </div>
+  </div>`;
+}
+function chooseRole(r){STATE.role=r;transition('difficulty')}
+function renderDifficulty(){
+  app.innerHTML=`<div class="screen">
+    ${trialNav()}
+    <div class="card panel"><div class="h2">${esc(UI.diffTitle)}</div>
+      <div class="btns">
+        <button class="btn" onclick="chooseDiff('fair')">${esc(UI.diffFair)}</button>
+        <button class="btn" onclick="chooseDiff('wolf')">${esc(UI.diffWolf)}</button>
+        <button class="btn red" onclick="chooseDiff('dog')">${esc(UI.diffDog)}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function chooseDiff(d){STATE.jurorBias=d;transition('opening')}
+function renderOpening(){
+  const rival=rivalObj();
+  app.innerHTML=shell(JUDGE.opening, `<div class="card panel"><div class="arg">${esc(rival.intro)}</div></div>`,
+    `<div class="btns"><button class="btn primary" onclick="startEvidence()">${esc(UI.next)}</button></div>`,
+    'ぼく、おおかみだよ。ちゃんと証明してね。', true);
+}
+function startEvidence(){log(JUDGE.toEvidence);transition('evidence')}
+function pickEvidence(){
+  const pool=EVIDENCE.filter(e=>!STATE.usedEvidence.includes(e.id));
+  const e=pool[Math.floor(Math.random()*pool.length)];
+  STATE.usedEvidence.push(e.id);
+  currentEvidence=e;
+  if(Math.random()<.2){
+    const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
+    addPoints(ev.wp,ev.dp,'法廷イベント');setMood(ev.mood);log(ev.text);
+  }else setMood('neutral');
+}
+function renderEvidence(){
+  if(!currentEvidence) pickEvidence();
+  const arg=STATE.role==='wolf'?currentEvidence.wolfArg:currentEvidence.dogArg;
+  const roleLabel=STATE.role==='wolf'?'🐺 おおかみ派の主張':'🐕 いぬ派の主張';
+  const roundLabel=`証拠提出 ${STATE.evRound+1} / 3`;
+  const body=`<div class="card panel">
+    <div class="meta">${esc(roundLabel)}</div>
+    <div class="evidence"><b>${esc(currentEvidence.title)}</b><p>${esc(currentEvidence.desc)}</p></div>
+    <div class="arg-label">${esc(roleLabel)}</div>
+    <div class="arg">${esc(arg)}</div>
+  </div>`;
+  app.innerHTML=shell(JUDGE.toEvidence, body, `<div class="btns"><button class="btn primary" onclick="presentEvidence()">${esc(UI.present)}</button></div>`, '', true);
+}
+function presentEvidence(){
+  const e=currentEvidence;
+  if(STATE.role==='wolf') addPoints(e.wp,0,'証拠提出'); else addPoints(0,e.dp,'証拠提出');
+  log(UI.present+'：'+e.title);
+  const list=OBJECTIONS[STATE.role];
+  currentObjection=list[Math.floor(Math.random()*list.length)];
+  transition('objection');
+}
+function renderObjection(){
+  const rival=rivalObj();
+  const body=`<div class="card panel">
+    <div class="arg">${esc(rival.counterPre)}</div>
+    <div class="evidence"><b>${esc(UI.rival)}</b><p>${esc(currentObjection.rivalSays)}</p></div>
+    <div class="btns">${currentObjection.choices.map((c,i)=>`<button class="btn" onclick="answerObj(${i})">${esc(c)}</button>`).join('')}</div>
+  </div>`;
+  app.innerHTML=shell(UI.objection, body, '', '', true);
+}
+function answerObj(i){
+  if(i===currentObjection.correct){
+    myAdd(2,'異議成功');STATE.combo++;STATE.objectionWins++;STATE.maxCombo=Math.max(STATE.maxCombo,STATE.combo);
+    STATE.notice={kind:'good',text:currentObjection.good||JUDGE.objGood};
+    log(JUDGE.objGood);flash();
+  }else{
+    oppAdd(2,'異議棄却');STATE.combo=0;
+    STATE.notice={kind:'bad',text:currentObjection.bad||JUDGE.objBad};
+    log(JUDGE.objBad);
+  }
+  currentEvidence=null;currentObjection=null;STATE.evRound++;
+  setTimeout(()=>{STATE.evRound>=3?transition('testimony'):transition('evidence')},320);
+}
+function flash(){
+  const f=document.getElementById('flash');
+  f.classList.add('show');document.body.classList.add('court-shake');
+  if(navigator.vibrate) navigator.vibrate(45);
+  setTimeout(()=>{f.classList.remove('show');document.body.classList.remove('court-shake')},300);
+}
+function renderTestimony(){
+  const t=TESTIMONY[STATE.testIndex];
+  setMood(t.statement.mood);
+  const body=`<div class="card panel"><div class="h2">尋問 ${STATE.testIndex+1} / 3</div></div>`;
+  const actions=`<div class="btns two">
+    <button class="btn" onclick="answerTest('press')">${esc(UI.pressBtn)}<small>証言の矛盾を突く</small></button>
+    <button class="btn primary" onclick="answerTest('push')">${esc(UI.pushBtn)}<small>証拠を示して追い詰める</small></button>
+  </div>`;
+  app.innerHTML=shell(JUDGE.toTestimony, body, actions, t.statement.text, true);
+}
+function answerTest(kind){
+  const r=TESTIMONY[STATE.testIndex][kind];
+  addPoints(r.wp,r.dp,kind==='press'?'ゆさぶり':'証拠提示');setMood(r.mood);log(kind==='press'?UI.pressBtn:UI.pushBtn);
+  STATE.testIndex++;
+  app.innerHTML=shell(JUDGE.toTestimony, '',
+    `<div class="btns"><button class="btn primary" onclick="${STATE.testIndex>=3?"transition('climax')":"transition('testimony')"}">${esc(UI.next)}</button></div>`,
+    r.text, true);
+}
+function renderClimax(){
+  const c=CLIMAX[STATE.role];
+  const body=`<div class="card panel"><div class="btns">${c.choices.map((x,i)=>`<button class="btn" onclick="answerClimax(${i})">${esc(x.label)}</button>`).join('')}</div></div>`;
+  app.innerHTML=shell(c.prompt, body, '', '', true);
+}
+function answerClimax(i){
+  const x=CLIMAX[STATE.role].choices[i];
+  addPoints(x.wp,x.dp,'決定的主張');setMood(x.mood);log(x.label);
+  app.innerHTML=shell(JUDGE.toClimax, `<div class="card panel"><div class="arg">${esc(x.gauruReply)}</div></div>`,
+    `<div class="btns"><button class="btn primary" onclick="transition('closing')">${esc(UI.next)}</button></div>`, x.gauruReply, true);
+}
+function renderClosing(){
+  const c=CLOSING[STATE.role];
+  const body=`<div class="card panel"><div class="btns">${c.map((x,i)=>`<button class="btn" onclick="answerClosing(${i})">${esc(x.label)}</button>`).join('')}</div></div>`;
+  app.innerHTML=shell(JUDGE.toClosing, body, '', '', true);
+}
+function answerClosing(i){
+  const x=CLOSING[STATE.role][i];
+  addPoints(x.wp,x.dp,'最終弁論');log(x.label);
+  app.innerHTML=shell(JUDGE.toClosing, `<div class="card panel"><div class="arg">${esc(x.text)}</div></div>`,
+    `<div class="btns"><button class="btn primary" onclick="transition('verdict')">${esc(UI.next)}</button></div>`, '', true);
+}
+function calcPWolf(){
+  let p=STATE.wolfPoints/(STATE.wolfPoints+STATE.dogPoints+0.001);
+  if(STATE.jurorBias==='wolf') p+=.15;
+  if(STATE.jurorBias==='dog') p-=.15;
+  return clamp(p,0,1);
+}
+function juryImpression(){
+  const p=calcPWolf();
+  const pct=Math.round(p*100);
+  let lean='ほぼ五分';
+  if(p>=.75) lean='強くおおかみ寄り';
+  else if(p>=.58) lean='ややおおかみ寄り';
+  else if(p<=.25) lean='強くいぬ寄り';
+  else if(p<=.42) lean='ややいぬ寄り';
+  const bias=STATE.jurorBias==='wolf'?'今日はおおかみ寄りの陪審員です。':STATE.jurorBias==='dog'?'今日はややいぬ寄りの陪審員です。':'今日は公平な陪審員です。';
+  return `現在の陪審員の印象：${lean}（おおかみ票の目安 ${pct}%）。${bias}`;
+}
+function renderVerdict(){
+  if(jurorVotes.length===0) runJurors();
+  const cards=JURORS.names.map((n,i)=>{
+    const v=jurorVotes[i];
+    const text=v ? (v==='wolf'?JURORS.wolfVote[i]:JURORS.dogVote[i]) : '';
+    return `<div class="juror-card ${v?'on':''}"><b>${esc(n)}</b><p>${esc(text)}</p></div>`;
+  }).join('');
+  const done=jurorVotes.length>=3;
+  if(done && !selectedEnding) pickEnding();
+  const verdictText=done?esc(ENDINGS[selectedEnding].verdict):'';
+  app.innerHTML=shell(JUDGE.beforeVerdict, `<div class="card panel"><div class="impression"><b>評議前メモ</b><br>${esc(juryImpression())}</div><div class="jurors">${cards}</div><div class="verdict-text ${done?'show':''}">${verdictText}</div></div>`,
+    done?`<div class="btns"><button class="btn primary" onclick="transition('ending')">${esc(UI.next)}</button></div>`:'', '', true);
+}
+function runJurors(){
+  const p=calcPWolf();
+  for(let i=0;i<3;i++){
+    setTimeout(()=>{jurorVotes[i]=Math.random()<p?'wolf':'dog';renderVerdict();},700*(i+1));
+  }
+}
+function pickEnding(){
+  const diff=STATE.wolfPoints-STATE.dogPoints;
+  let key;
+  if(Math.abs(diff)<=2 && STATE.objectionWins>=2 && STATE.maxCombo>=3) key='trueEnd';
+  else if(diff>=8) key='wolfBig';
+  else if(diff>0) key='wolfWin';
+  else if(diff===0) key='draw';
+  else if(diff>-8) key='dogWin';
+  else key='dogBig';
+  selectedEnding=key;
+  return ENDINGS[key];
+}
+function renderEnding(){
+  if(!selectedEnding) pickEnding();
+  const e=ENDINGS[selectedEnding];setMood(e.mood);
+  const body=`<div class="card panel"><div class="h2">${esc(e.title)}</div><div class="verdict-text show">${esc(e.verdict)}</div></div>`;
+  app.innerHTML=shell(e.verdict, body, `<div class="btns"><button class="btn primary" onclick="transition('result')">${esc(UI.next)}</button></div>`, e.gauru, true);
+}
+function winner(){
+  const d=STATE.wolfPoints-STATE.dogPoints;
+  if(d>0)return 'wolf'; if(d<0)return 'dog'; return 'draw';
+}
+function calcRank(){
+  const diff=STATE.wolfPoints-STATE.dogPoints;
+  const w=winner();
+  const base=w==='draw'?30:(w===STATE.role?50:10);
+  const margin=w===STATE.role?Math.min(Math.abs(diff),20)*1.2:0;
+  const score=clamp(Math.round(base+margin+STATE.maxCombo*4+STATE.objectionWins*6),0,100);
+  const rank=RANKS.find(r=>score>=r.min);
+  return {score,rank};
+}
+function renderResult(){
+  const diff=STATE.wolfPoints-STATE.dogPoints;
+  const w=winner();
+  const cr=calcRank();lastScore=cr.score;
+  const winText=w==='draw'?'引き分け':(w===STATE.role?'あなたの勝訴':'あなたの敗訴');
+  const body=`<div class="card panel">
+    <div class="note">${esc(winText)}</div>
+    <div class="rank">${esc(cr.rank.rank)}</div>
+    <div class="note">${esc(cr.rank.comment)}</div>
+    <div class="result-grid">
+      <div><b>${esc(String(diff))}</b><span>得点差</span></div>
+      <div><b>${esc(String(STATE.maxCombo))}</b><span>最高コンボ</span></div>
+      <div><b>${esc(String(STATE.objectionWins))}</b><span>異議成功</span></div>
+      <div><b>${esc(String(cr.score))}</b><span>総合スコア</span></div>
+    </div>
+  </div>`;
+  app.innerHTML=shell(ENDINGS[selectedEnding].title, body,
+    `<div class="btns"><button class="btn primary" onclick="resetAll()">${esc(UI.retry)}</button><button class="btn" onclick="changeRole()">${esc(UI.changeRole)}</button><a class="btn btn-link" href="GAURU-WOLF.html">🐺 ガウルくんに話しかける</a></div>`, '', true);
+}
+function resetAll(){STATE=structuredClone(INITIAL_STATE);currentEvidence=null;currentObjection=null;jurorVotes=[];selectedEnding=null;transition('title')}
+function changeRole(){STATE=structuredClone(INITIAL_STATE);currentEvidence=null;currentObjection=null;jurorVotes=[];selectedEnding=null;transition('role')}
+
+render();
+</script>
+</body>
+</html>
