@@ -30,8 +30,7 @@ body{
     radial-gradient(ellipse at 20% 0%,rgba(25,75,170,.38) 0,transparent 55%),
     radial-gradient(ellipse at 80% 100%,rgba(15,55,130,.32) 0,transparent 55%);
   color:var(--text);
-  min-height:100svh;
-  overflow-x:hidden;
+  overflow-x:clip;
 }
 body.true-glow::before{
   content:"";
@@ -48,7 +47,6 @@ body.true-glow::before{
   max-width:560px;
   margin:0 auto;
   padding:16px 14px 28px;
-  min-height:100svh;
   display:flex;
   flex-direction:column;
   gap:12px;
@@ -275,9 +273,18 @@ body.true-glow::before{
   color:var(--muted);
   margin-bottom:4px;
 }
+.step-hint{
+  font-size:11px;
+  color:var(--dim);
+  line-height:1.6;
+  padding:8px 10px;
+  background:rgba(255,216,74,.05);
+  border:1px solid rgba(255,216,74,.15);
+  border-radius:8px;
+}
 /* ─── Flash ─── */
 .flash{position:fixed;inset:0;z-index:50;display:none;place-items:center;pointer-events:none}
-.flash.show{display:grid;animation:flashFade .35s ease forwards}
+.flash.show{display:grid;animation:flashFade 1.2s ease forwards}
 .court-shake{animation:courtShake .28s ease}
 .flash span{
   font-size:clamp(44px,14vw,88px);
@@ -286,9 +293,10 @@ body.true-glow::before{
   text-shadow:0 4px 30px rgba(255,216,74,.5);
 }
 @keyframes flashFade{
-  0%{opacity:0;transform:scale(.8)}
-  35%{opacity:1;transform:scale(1.05)}
-  100%{opacity:0;transform:scale(1.14)}
+  0%  {opacity:0;transform:scale(.75)}
+  18% {opacity:1;transform:scale(1.08)}
+  60% {opacity:1;transform:scale(1.02)}
+  100%{opacity:0;transform:scale(1.12)}
 }
 @keyframes courtShake{
   0%,100%{transform:translateX(0)}
@@ -843,6 +851,7 @@ function renderEvidence(){
     <div class="evidence"><b>${esc(currentEvidence.title)}</b><p>${esc(currentEvidence.desc)}</p></div>
     <div class="arg-label">${esc(roleLabel)}</div>
     <div class="arg">${esc(arg)}</div>
+    <div class="step-hint">提出すると相手方が反論してきます。その反論を正しく切り返せたら加点！</div>
   </div>`;
   app.innerHTML=shell(JUDGE.toEvidence, body, `<div class="btns"><button class="btn primary" onclick="presentEvidence()">${esc(UI.present)}</button></div>`, '', true);
 }
@@ -858,10 +867,11 @@ function renderObjection(){
   const rival=rivalObj();
   const body=`<div class="card panel">
     <div class="arg">${esc(rival.counterPre)}</div>
-    <div class="evidence"><b>${esc(UI.rival)}</b><p>${esc(currentObjection.rivalSays)}</p></div>
+    <div class="evidence"><b>相手方の反論</b><p>${esc(currentObjection.rivalSays)}</p></div>
+    <div class="arg-label">あなたの切り返しを選んでください</div>
     <div class="btns">${currentObjection.choices.map((c,i)=>`<button class="btn" onclick="answerObj(${i})">${esc(c)}</button>`).join('')}</div>
   </div>`;
-  app.innerHTML=shell(UI.objection, body, '', '', true);
+  app.innerHTML=shell('相手方から反論が来ました。正しい切り返しを選んでください。', body, '', '', true);
 }
 function answerObj(i){
   if(i===currentObjection.correct){
@@ -879,8 +889,8 @@ function answerObj(i){
 function flash(){
   const f=document.getElementById('flash');
   f.classList.add('show');document.body.classList.add('court-shake');
-  if(navigator.vibrate) navigator.vibrate(45);
-  setTimeout(()=>{f.classList.remove('show');document.body.classList.remove('court-shake')},300);
+  if(navigator.vibrate) navigator.vibrate([60,30,90]);
+  setTimeout(()=>{f.classList.remove('show');document.body.classList.remove('court-shake')},1100);
 }
 function renderTestimony(){
   const t=TESTIMONY[STATE.testIndex];
