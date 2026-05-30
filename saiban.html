@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="gauru-saiban-version" content="ux-refactor-2026-05-30-match-objections">
 <title>ガウルくん種族裁判</title>
 <style>
 :root{
@@ -483,6 +484,7 @@ const INITIAL_STATE = {
   objResult:null,
   inlineReply:null,
 };
+const BUILD_ID = 'ux-refactor-2026-05-30-match-objections';
 let STATE = structuredClone(INITIAL_STATE);
 let currentEvidence=null;
 let evidenceChoices=[];
@@ -815,6 +817,10 @@ const MOOD_CLASS = {
 };
 
 const app=document.getElementById('app');
+console.info(`[gauru-saiban] ${BUILD_ID}`, location.href);
+window.addEventListener('pageshow', e=>{
+  if(e.persisted) location.reload();
+});
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
 function setFeedback(wp=0,dp=0,label=''){
