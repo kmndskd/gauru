@@ -990,7 +990,7 @@ function renderDifficulty(){
   renderRole();
 }
 function chooseDiff(d){STATE.jurorBias=d;renderRole()}
-function startTrial(){log(JUDGE.opening);transition('evidence')}
+function startTrial(){log(JUDGE.opening);transition('opening')}
 function renderOpening(){
   const rival=rivalObj();
   app.innerHTML=shell(JUDGE.opening, `<div class="card panel"><div class="arg">${esc(rival.intro)}</div></div>`,
